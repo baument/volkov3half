@@ -3,11 +3,29 @@
 #include "VacationWorker.h"
 #include "ChildCareWorker.h"
 
+#include <functional>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-void printWorkers(const std::vector<const Worker*>& workers);
+enum class MenuItem
+{
+    Exit = 0,
+    ShowAll = 1,
+    FindByName = 2,
+    FindByPosition = 3,
+    FindByRate = 4,
+    WithChildren = 5,
+    Pensioners = 6,
+    WithDisability = 7,
+    Vacation = 8,
+    ChildCare = 9,
+    ShowPositions = 10,
+    PreviousJobs = 11
+};
+
+void printWorkers(const WorkerList& workers);
 
 int main()
 {
@@ -55,9 +73,9 @@ int main()
     department.addPosition(accountant);
     department.addPosition(manager);
 
-    department.addWorker(&worker1);
-    department.addWorker(&worker2);
-    department.addWorker(&worker3);
+    department.addWorker(worker1);
+    department.addWorker(worker2);
+    department.addWorker(worker3);
 
     std::cout << department.toString() << "\n\n";
 
@@ -80,56 +98,78 @@ int main()
         std::cout << "0. Выход\n";
         std::cout << "Ваш выбор: ";
 
-        std::cin >> choice;
+        if (!(std::cin >> choice))
+        {
+            std::cin.clear();
+            std::cin.ignore(10000, '\n');
+            std::cout << "Некорректный ввод\n";
+            continue;
+        }
+
         std::cin.ignore(10000, '\n');
 
-        if (choice == 1)
+        switch (static_cast<MenuItem>(choice))
         {
+        case MenuItem::ShowAll:
             printWorkers(department.getAllWorkers());
-        }
-        else if (choice == 2)
+            break;
+
+        case MenuItem::FindByName:
         {
             std::string name;
             std::cout << "Введите ФИО: ";
             std::getline(std::cin, name);
             printWorkers(department.findWorkersByName(name));
+            break;
         }
-        else if (choice == 3)
+
+        case MenuItem::FindByPosition:
         {
             std::string position;
             std::cout << "Введите должность: ";
             std::getline(std::cin, position);
             printWorkers(department.findWorkersByPosition(position));
+            break;
         }
-        else if (choice == 4)
+
+        case MenuItem::FindByRate:
         {
             double rate;
             std::cout << "Введите ставку: ";
-            std::cin >> rate;
+            if (!(std::cin >> rate))
+            {
+                std::cin.clear();
+                std::cin.ignore(10000, '\n');
+                std::cout << "Некорректный ввод\n";
+                break;
+            }
+
             std::cin.ignore(10000, '\n');
             printWorkers(department.findWorkersByRate(rate));
+            break;
         }
-        else if (choice == 5)
-        {
+
+        case MenuItem::WithChildren:
             printWorkers(department.findWorkersWithChildren());
-        }
-        else if (choice == 6)
-        {
+            break;
+
+        case MenuItem::Pensioners:
             printWorkers(department.findPensioners());
-        }
-        else if (choice == 7)
-        {
+            break;
+
+        case MenuItem::WithDisability:
             printWorkers(department.findWorkersWithDisability());
-        }
-        else if (choice == 8)
-        {
+            break;
+
+        case MenuItem::Vacation:
             printWorkers(department.findWorkersByStatus("В очередном отпуске"));
-        }
-        else if (choice == 9)
-        {
+            break;
+
+        case MenuItem::ChildCare:
             printWorkers(department.findWorkersByStatus("В отпуске по уходу за ребёнком"));
-        }
-        else if (choice == 10)
+            break;
+
+        case MenuItem::ShowPositions:
         {
             const std::vector<Position>& positions = department.getPositions();
 
@@ -137,43 +177,48 @@ int main()
             {
                 std::cout << position.toString() << "\n";
             }
+
+            break;
         }
-        else if (choice == 11)
+
+        case MenuItem::PreviousJobs:
         {
             std::string number;
             std::cout << "Введите табельный номер: ";
             std::getline(std::cin, number);
 
-            const Worker* worker = department.findWorkerByNumber(number);
-
-            if (worker == nullptr)
+            try
             {
-                std::cout << "Работник не найден\n";
-            }
-            else
-            {
-                const std::vector<std::string>& jobs = worker->getPreviousJobs();
+                const Worker& worker = department.findWorkerByNumber(number);
+                const std::vector<std::string>& jobs = worker.getPreviousJobs();
 
                 for (const std::string& job : jobs)
                 {
                     std::cout << job << "\n";
                 }
             }
+            catch (const std::out_of_range&)
+            {
+                std::cout << "Работник не найден\n";
+            }
+
+            break;
         }
-        else if (choice == 0)
-        {
+
+        case MenuItem::Exit:
             std::cout << "Завершение программы\n";
-        }
-        else
-        {
+            break;
+
+        default:
             std::cout << "Нет такого пункта меню\n";
+            break;
         }
     }
 
     return 0;
 }
 
-void printWorkers(const std::vector<const Worker*>& workers)
+void printWorkers(const WorkerList& workers)
 {
     if (workers.empty())
     {
@@ -181,8 +226,8 @@ void printWorkers(const std::vector<const Worker*>& workers)
         return;
     }
 
-    for (const Worker* worker : workers)
+    for (const std::reference_wrapper<const Worker>& worker : workers)
     {
-        std::cout << worker->toString() << "\n\n";
+        std::cout << worker.get().toString() << "\n\n";
     }
 }

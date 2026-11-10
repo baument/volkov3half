@@ -19,17 +19,14 @@ void Department::addPosition(const Position& position)
     positions_.push_back(position);
 }
 
-void Department::addWorker(Worker* worker)
+void Department::addWorker(Worker& worker)
 {
-    if (worker == nullptr)
+    for (const std::reference_wrapper<Worker>& oldWorkerReference : workers_)
     {
-        throw std::invalid_argument("Работник не задан");
-    }
+        const Worker& oldWorker = oldWorkerReference.get();
 
-    for (const Worker* oldWorker : workers_)
-    {
-        if (oldWorker->getId() == worker->getId() ||
-            oldWorker->getPersonnelNumber() == worker->getPersonnelNumber())
+        if (oldWorker.getId() == worker.getId() ||
+            oldWorker.getPersonnelNumber() == worker.getPersonnelNumber())
         {
             throw std::invalid_argument("Такой работник уже добавлен");
         }
@@ -39,7 +36,7 @@ void Department::addWorker(Worker* worker)
 
     for (const Position& position : positions_)
     {
-        if (position.getName() == worker->getPosition())
+        if (position.getName() == worker.getPosition())
         {
             positionExists = true;
         }
@@ -58,30 +55,32 @@ const std::vector<Position>& Department::getPositions() const
     return positions_;
 }
 
-const std::vector<Worker*>& Department::getWorkers() const
+WorkerList Department::getWorkers() const
 {
-    return workers_;
+    return getAllWorkers();
 }
 
-std::vector<const Worker*> Department::getAllWorkers() const
+WorkerList Department::getAllWorkers() const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& worker : workers_)
     {
-        result.push_back(worker);
+        result.push_back(worker.get());
     }
 
     return result;
 }
 
-std::vector<const Worker*> Department::findWorkersByName(const std::string& name) const
+WorkerList Department::findWorkersByName(const std::string& name) const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->getFullName() == name)
+        const Worker& worker = workerReference.get();
+
+        if (worker.getFullName() == name)
         {
             result.push_back(worker);
         }
@@ -90,13 +89,15 @@ std::vector<const Worker*> Department::findWorkersByName(const std::string& name
     return result;
 }
 
-std::vector<const Worker*> Department::findWorkersByPosition(const std::string& position) const
+WorkerList Department::findWorkersByPosition(const std::string& position) const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->getPosition() == position)
+        const Worker& worker = workerReference.get();
+
+        if (worker.getPosition() == position)
         {
             result.push_back(worker);
         }
@@ -105,13 +106,15 @@ std::vector<const Worker*> Department::findWorkersByPosition(const std::string& 
     return result;
 }
 
-std::vector<const Worker*> Department::findWorkersByRate(double rate) const
+WorkerList Department::findWorkersByRate(double rate) const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->getRate() == rate)
+        const Worker& worker = workerReference.get();
+
+        if (worker.getRate() == rate)
         {
             result.push_back(worker);
         }
@@ -120,13 +123,15 @@ std::vector<const Worker*> Department::findWorkersByRate(double rate) const
     return result;
 }
 
-std::vector<const Worker*> Department::findWorkersWithChildren() const
+WorkerList Department::findWorkersWithChildren() const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->hasChildren())
+        const Worker& worker = workerReference.get();
+
+        if (worker.hasChildren())
         {
             result.push_back(worker);
         }
@@ -135,13 +140,15 @@ std::vector<const Worker*> Department::findWorkersWithChildren() const
     return result;
 }
 
-std::vector<const Worker*> Department::findPensioners() const
+WorkerList Department::findPensioners() const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->isPensioner())
+        const Worker& worker = workerReference.get();
+
+        if (worker.isPensioner())
         {
             result.push_back(worker);
         }
@@ -150,13 +157,15 @@ std::vector<const Worker*> Department::findPensioners() const
     return result;
 }
 
-std::vector<const Worker*> Department::findWorkersWithDisability() const
+WorkerList Department::findWorkersWithDisability() const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->hasDisability())
+        const Worker& worker = workerReference.get();
+
+        if (worker.hasDisability())
         {
             result.push_back(worker);
         }
@@ -165,13 +174,15 @@ std::vector<const Worker*> Department::findWorkersWithDisability() const
     return result;
 }
 
-std::vector<const Worker*> Department::findWorkersByStatus(const std::string& status) const
+WorkerList Department::findWorkersByStatus(const std::string& status) const
 {
-    std::vector<const Worker*> result;
+    WorkerList result;
 
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->getStatus() == status)
+        const Worker& worker = workerReference.get();
+
+        if (worker.getStatus() == status)
         {
             result.push_back(worker);
         }
@@ -180,17 +191,19 @@ std::vector<const Worker*> Department::findWorkersByStatus(const std::string& st
     return result;
 }
 
-const Worker* Department::findWorkerByNumber(const std::string& personnelNumber) const
+const Worker& Department::findWorkerByNumber(const std::string& personnelNumber) const
 {
-    for (const Worker* worker : workers_)
+    for (const std::reference_wrapper<Worker>& workerReference : workers_)
     {
-        if (worker->getPersonnelNumber() == personnelNumber)
+        const Worker& worker = workerReference.get();
+
+        if (worker.getPersonnelNumber() == personnelNumber)
         {
             return worker;
         }
     }
 
-    return nullptr;
+    throw std::out_of_range("Работник не найден");
 }
 
 std::string Department::toString() const
