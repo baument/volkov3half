@@ -14,6 +14,8 @@ protected:
 public:
     Person(const Person&) = delete;
     Person& operator=(const Person&) = delete;
+    Person(Person&& other) noexcept;
+    Person& operator=(Person&&) = delete;
     virtual ~Person() = default;
 
     int getId() const;
