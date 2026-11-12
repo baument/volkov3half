@@ -1,7 +1,7 @@
 #include "Position.h"
 #include <stdexcept>
 
-Position::Position(const std::string& name, const std::string& description)
+Position::Position(const std::string &name, const std::string &description)
     : name_(name), description_(description)
 {
     if (name_.empty())
@@ -10,15 +10,9 @@ Position::Position(const std::string& name, const std::string& description)
     }
 }
 
-const std::string& Position::getName() const
-{
-    return name_;
-}
+const std::string &Position::getName() const { return name_; }
 
-const std::string& Position::getDescription() const
-{
-    return description_;
-}
+const std::string &Position::getDescription() const { return description_; }
 
 std::string Position::toString() const
 {
