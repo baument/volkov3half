@@ -2,22 +2,30 @@
 #include <iostream>
 #include <limits>
 
-// Значения пунктов меню, чтобы не использовать числа в switch.
+/**
+ * @brief Перечисляет пункты меню консольного приложения.
+ */
 enum class MenuItem
 {
-    Exit = 0,
-    ShowAll = 1,
-    FindByName,
-    FindByPosition,
-    FindByRate,
-    WithChildren,
-    Pensioners,
-    WithDisability,
-    Vacation,
-    ChildCare,
-    ShowPositions,
-    PreviousJobs
+    Exit = 0,         ///< Завершает работу программы.
+    ShowAll = 1,      ///< Выводит всех сотрудников.
+    FindByName,       ///< Ищет сотрудников по ФИО.
+    FindByPosition,   ///< Ищет сотрудников по должности.
+    FindByRate,       ///< Ищет сотрудников по ставке.
+    WithChildren,     ///< Выводит сотрудников с детьми.
+    Pensioners,       ///< Выводит сотрудников-пенсионеров.
+    WithDisability,   ///< Выводит сотрудников с инвалидностью.
+    Vacation,         ///< Выводит сотрудников в очередном отпуске.
+    ChildCare,        ///< Выводит сотрудников в отпуске по уходу.
+    ShowPositions,    ///< Выводит должности отдела.
+    PreviousJobs      ///< Выводит предыдущие места работы сотрудника.
 };
+
+/**
+ * @brief Выводит найденных сотрудников на консоль.
+ * @param workers Список сотрудников отдела.
+ * @param indices Индексы сотрудников, которые нужно вывести.
+ */
 void printWorkers(const std::vector<Worker> &workers, const WorkerIndices &indices)
 {
     // Выводим сотрудников по индексам, найденным отделом.
@@ -29,8 +37,13 @@ void printWorkers(const std::vector<Worker> &workers, const WorkerIndices &indic
     for (std::size_t index : indices)
         std::cout << workers.at(index).toString() << "\n\n";
 }
+/**
+ * @brief Запускает консольное приложение отдела кадров.
+ * @return Код завершения программы.
+ */
 int main()
 {
+    // Создаём отдел, должности и исходные данные сотрудников.
     Department department("Отдел кадров");
     department.addPosition(Position("Программист", "Разработка программ"));
     department.addPosition(Position("Бухгалтер", "Работа с финансами"));
@@ -46,6 +59,7 @@ int main()
     department.addWorker(first);
     department.addWorker(second);
     department.addWorker(third);
+    // Обрабатываем команды меню до выбора пункта завершения.
     int choice = -1;
     while (choice != static_cast<int>(MenuItem::Exit))
     {
@@ -62,7 +76,7 @@ int main()
         }
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         const std::vector<Worker> &workers = department.getWorkers();
-        // Выполняем действие выбранного пункта меню.
+        // Выбираем действие по значению перечисления MenuItem.
         switch (static_cast<MenuItem>(choice))
         {
         case MenuItem::ShowAll:

@@ -7,7 +7,9 @@
 class Position
 {
   private:
+    /** @brief Название должности. */
     std::string name_;
+    /** @brief Необязательное описание должности. */
     std::string description_;
 
   public:

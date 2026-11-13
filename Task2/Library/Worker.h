@@ -7,19 +7,32 @@
  */
 enum class WorkerStatus
 {
-    Working,
-    Vacation,
-    ChildCare
+    Working,   ///< Сотрудник работает.
+    Vacation,  ///< Сотрудник находится в очередном отпуске.
+    ChildCare  ///< Сотрудник находится в отпуске по уходу за ребёнком.
 };
 /**
  * @brief Содержит данные, необходимые для создания сотрудника.
  */
 struct WorkerData
 {
-    std::string fullName, personnelNumber, position;
+    /** @brief ФИО сотрудника; значение не должно быть пустым. */
+    std::string fullName;
+    /** @brief Табельный номер сотрудника; значение не должно быть пустым. */
+    std::string personnelNumber;
+    /** @brief Название должности сотрудника; значение не должно быть пустым. */
+    std::string position;
+    /** @brief Ставка сотрудника; должна быть положительным конечным числом. */
     double rate = 1.0;
-    bool hasChildren = false, isPensioner = false, hasDisability = false;
+    /** @brief Признак наличия детей у сотрудника. */
+    bool hasChildren = false;
+    /** @brief Признак пенсионного статуса сотрудника. */
+    bool isPensioner = false;
+    /** @brief Признак наличия инвалидности у сотрудника. */
+    bool hasDisability = false;
+    /** @brief Список предыдущих мест работы сотрудника. */
     std::vector<std::string> previousJobs;
+    /** @brief Текущий статус сотрудника. */
     WorkerStatus status = WorkerStatus::Working;
 };
 /**
@@ -30,10 +43,21 @@ struct WorkerData
  */
 class Worker : public Person
 {
-    std::string personnelNumber_, position_;
+    /** @brief Табельный номер сотрудника. */
+    std::string personnelNumber_;
+    /** @brief Название должности сотрудника. */
+    std::string position_;
+    /** @brief Ставка сотрудника. */
     double rate_;
-    bool hasChildren_, isPensioner_, hasDisability_;
+    /** @brief Признак наличия детей у сотрудника. */
+    bool hasChildren_;
+    /** @brief Признак пенсионного статуса сотрудника. */
+    bool isPensioner_;
+    /** @brief Признак наличия инвалидности у сотрудника. */
+    bool hasDisability_;
+    /** @brief Список предыдущих мест работы сотрудника. */
     std::vector<std::string> previousJobs_;
+    /** @brief Текущий статус сотрудника. */
     WorkerStatus status_;
 
   protected:

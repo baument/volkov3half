@@ -10,8 +10,11 @@
 class Person
 {
   private:
+    /** @brief Следующий свободный уникальный идентификатор человека. */
     static int nextId_;
+    /** @brief Уникальный идентификатор данного человека. */
     int id_;
+    /** @brief Полное имя человека. */
     std::string fullName_;
 
   protected:

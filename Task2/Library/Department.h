@@ -13,8 +13,11 @@ using WorkerIndices = std::vector<std::size_t>;
  */
 class Department
 {
+    /** @brief Название отдела кадров. */
     std::string name_;
+    /** @brief Список должностей, доступных в отделе. */
     std::vector<Position> positions_;
+    /** @brief Список сотрудников отдела кадров. */
     std::vector<Worker> workers_;
 
   public:

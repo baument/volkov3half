@@ -28,7 +28,13 @@ void Department::addWorker(const WorkerData &d)
 }
 const std::vector<Position> &Department::getPositions() const { return positions_; }
 const std::vector<Worker> &Department::getWorkers() const { return workers_; }
-// Общий цикл исключает дублирование логики поиска по сотрудникам.
+/**
+ * @brief Выполняет поиск сотрудников по передикату.
+ * @tparam P Тип передиката, принимающего константную ссылку на Worker.
+ * @param ws Список сотрудников для поиска.
+ * @param p Предикат выбора сотрудника.
+ * @return Индексы сотрудников, для которых предикат вернул true.
+ */
 template <class P> static std::vector<std::size_t> find(const std::vector<Worker> &ws, P p)
 {
     std::vector<std::size_t> r;

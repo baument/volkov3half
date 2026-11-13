@@ -12,9 +12,15 @@
 
 namespace
 {
+/** @brief Считает количество выполненных тестовых проверок. */
 int checks = 0;
 
-// Явная проверка работает и в Release, где assert может быть отключён.
+/**
+ * @brief Проверяет условие и прекращает тестирование при ошибке.
+ * @param condition Проверяемое условие.
+ * @param message Сообщение об ошибке проверки.
+ * @throws std::runtime_error Если условие ложно.
+ */
 void check(bool condition, const std::string &message)
 {
     ++checks;
@@ -24,6 +30,11 @@ void check(bool condition, const std::string &message)
     }
 }
 
+/**
+ * @brief Проверяет выброс исключения std::invalid_argument.
+ * @param action Действие, которое должно выбросить исключение.
+ * @throws std::runtime_error Если ожидаемое исключение не выброшено.
+ */
 void checkInvalidArgument(const std::function<void()> &action)
 {
     // Проверяем, что действие отклоняет неверные данные.
@@ -39,6 +50,11 @@ void checkInvalidArgument(const std::function<void()> &action)
     check(thrown, "Ожидалось std::invalid_argument");
 }
 
+/**
+ * @brief Проверяет выброс исключения std::out_of_range.
+ * @param action Действие, которое должно выбросить исключение.
+ * @throws std::runtime_error Если ожидаемое исключение не выброшено.
+ */
 void checkOutOfRange(const std::function<void()> &action)
 {
     // Проверяем поиск отсутствующего значения.
@@ -54,6 +70,13 @@ void checkOutOfRange(const std::function<void()> &action)
     check(thrown, "Ожидалось std::out_of_range");
 }
 
+/**
+ * @brief Создаёт минимальный набор данных сотрудника для теста.
+ * @param name ФИО сотрудника.
+ * @param number Табельный номер сотрудника.
+ * @param position Название должности сотрудника.
+ * @return Заполненная структура WorkerData.
+ */
 WorkerData makeData(const std::string &name, const std::string &number, const std::string &position)
 {
     // Создаём минимальный набор данных для теста.
@@ -64,7 +87,11 @@ WorkerData makeData(const std::string &name, const std::string &number, const st
     return data;
 }
 
-// Проверяет доступные через наследника методы абстрактного Person.
+/**
+ * @brief Проверяет Person через конкретного наследника.
+ *
+ * Проверяет ФИО, уникальный ID, виртуальный toString() и отказ от пустого ФИО.
+ */
 void testPerson()
 {
     WorkerData firstData = makeData("Иванов Иван", "P-1", "Программист");
@@ -83,7 +110,9 @@ void testPerson()
     checkInvalidArgument([&invalid] { WorkingWorker worker(invalid); });
 }
 
-// Проверяет должность, её строковое представление и неверные данные.
+/**
+ * @brief Проверяет Position и обработку пустого названия.
+ */
 void testPosition()
 {
     Position programmer("Программист", "Разработка");
@@ -97,7 +126,9 @@ void testPosition()
     checkInvalidArgument([] { Position position(""); });
 }
 
-// Проверяет конкретный Worker, все его данные и сравнение по табельному номеру.
+/**
+ * @brief Проверяет Worker, его данные, перемещение и сравнение.
+ */
 void testWorker()
 {
     WorkerData data = makeData("Сидоров Сергей", "W-1", "Программист");
@@ -145,7 +176,9 @@ void testWorker()
     checkInvalidArgument([&invalidRate] { Worker worker(invalidRate); });
 }
 
-// Проверяет специализированный работающий статус и виртуальный вызов.
+/**
+ * @brief Проверяет WorkingWorker и виртуальный вызов статуса.
+ */
 void testWorkingWorker()
 {
     WorkingWorker worker(makeData("Работающий", "WW-1", "Программист"));
@@ -154,7 +187,9 @@ void testWorkingWorker()
     check(polymorphic.getStatus() == "Работает", "Полиморфизм WorkingWorker");
 }
 
-// Проверяет специализированный статус очередного отпуска.
+/**
+ * @brief Проверяет VacationWorker и его статус отпуска.
+ */
 void testVacationWorker()
 {
     VacationWorker worker(makeData("Отпуск", "VW-1", "Программист"));
@@ -164,7 +199,9 @@ void testVacationWorker()
           "Полиморфизм VacationWorker");
 }
 
-// Проверяет специализированный статус отпуска по уходу.
+/**
+ * @brief Проверяет ChildCareWorker и его статус отпуска по уходу.
+ */
 void testChildCareWorker()
 {
     ChildCareWorker worker(makeData("Уход", "CW-1", "Программист"));
@@ -174,7 +211,9 @@ void testChildCareWorker()
           "Полиморфизм ChildCareWorker");
 }
 
-// Проверяет все публичные операции отдела кадров и пограничные случаи поиска.
+/**
+ * @brief Проверяет все публичные операции Department и пограничные случаи поиска.
+ */
 void testDepartment()
 {
     Department department("Отдел кадров");
@@ -235,6 +274,10 @@ void testDepartment()
 }
 } // namespace
 
+/**
+ * @brief Запускает все автоматические тесты проекта.
+ * @return Код завершения тестового приложения.
+ */
 int main()
 {
     testPerson();
