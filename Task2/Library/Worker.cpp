@@ -1,0 +1,51 @@
+#include "Worker.h"
+#include <cmath>
+#include <stdexcept>
+Worker::Worker(const WorkerData &data) : Worker(data, data.status) {}
+Worker::Worker(const WorkerData &data, WorkerStatus status)
+    : Person(data.fullName), personnelNumber_(data.personnelNumber), position_(data.position),
+      rate_(data.rate), hasChildren_(data.hasChildren), isPensioner_(data.isPensioner),
+      hasDisability_(data.hasDisability), previousJobs_(data.previousJobs), status_(status)
+{
+    // Проверяем обязательные поля и допустимую ставку.
+    if (personnelNumber_.empty())
+        throw std::invalid_argument("Табельный номер не может быть пустым");
+    if (position_.empty())
+        throw std::invalid_argument("Должность не может быть пустой");
+    if (!std::isfinite(rate_) || rate_ <= 0.0)
+        throw std::invalid_argument("Ставка должна быть положительным числом");
+}
+const std::string &Worker::getPersonnelNumber() const { return personnelNumber_; }
+const std::string &Worker::getPosition() const { return position_; }
+double Worker::getRate() const { return rate_; }
+bool Worker::hasChildren() const { return hasChildren_; }
+bool Worker::isPensioner() const { return isPensioner_; }
+bool Worker::hasDisability() const { return hasDisability_; }
+const std::vector<std::string> &Worker::getPreviousJobs() const { return previousJobs_; }
+WorkerStatus Worker::getWorkerStatus() const { return status_; }
+std::string Worker::getStatus() const
+{
+    // Превращаем значение enum в понятный текст.
+    switch (status_)
+    {
+    case WorkerStatus::Working:
+        return "Работает";
+    case WorkerStatus::Vacation:
+        return "В очередном отпуске";
+    case WorkerStatus::ChildCare:
+        return "В отпуске по уходу за ребёнком";
+    }
+    throw std::logic_error("Неизвестный статус");
+}
+std::string Worker::toString() const
+{
+    return "ID: " + std::to_string(getId()) + "\nФИО: " + getFullName() +
+           "\nТабельный номер: " + personnelNumber_ + "\nДолжность: " + position_ +
+           "\nСтавка: " + std::to_string(rate_) + "\nЕсть дети: " + (hasChildren_ ? "да" : "нет") +
+           "\nПенсионер: " + (isPensioner_ ? "да" : "нет") +
+           "\nИнвалидность: " + (hasDisability_ ? "да" : "нет") + "\nСтатус: " + getStatus();
+}
+bool Worker::equals(const Worker &other) const
+{
+    return personnelNumber_ == other.personnelNumber_;
+}
