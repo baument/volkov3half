@@ -2,82 +2,249 @@
 #include "Department.h"
 #include "VacationWorker.h"
 #include "WorkingWorker.h"
-#include <cassert>
+
+#include <cmath>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <string>
 
-int main()
+namespace
 {
-    Position programmer("Программист"), accountant("Бухгалтер");
-    WorkerData a{"Иванов Иван", "001", "Программист"};
-    a.previousJobs = {"Альфа"};
-    WorkerData b{"Петров Пётр", "002", "Бухгалтер",           .5, true, true,
-                 false,         {},    WorkerStatus::Vacation};
-    WorkerData c{"Сидорова Анна",        "003", "Программист", 1.0, true, false, true, {},
-                 WorkerStatus::ChildCare};
-    WorkingWorker working(a);
-    VacationWorker vacation(b);
-    ChildCareWorker child(c);
-    const Person &person = vacation;
-    assert(person.toString().find("отпуске") != std::string::npos);
-    assert(working.getStatus() == "Работает" &&
-           child.getStatus().find("уходу") != std::string::npos);
-    Department d("Отдел кадров");
-    d.addPosition(programmer);
-    d.addPosition(accountant);
-    d.addWorker(a);
-    d.addWorker(b);
-    d.addWorker(c);
-    assert(d.getWorkers().size() == 3 && d.getAllWorkers().size() == 3 &&
-           d.findWorkersByName("Иванов Иван").size() == 1 &&
-           d.findWorkersByPosition("Программист").size() == 2 &&
-           d.findWorkersByRate(.5).size() == 1 && d.findWorkersWithChildren().size() == 2 &&
-           d.findPensioners().size() == 1 && d.findWorkersWithDisability().size() == 1 &&
-           d.findWorkersByStatus(WorkerStatus::Vacation).size() == 1);
-    assert(d.findWorkerByNumber("001").equals(d.getWorkers().at(0)) &&
-           d.findWorkerByNumber("001").getPreviousJobs().at(0) == "Альфа");
-    int id = d.getWorkers().at(0).getId();
-    for (int i = 4; i <= 30; ++i)
+int checks = 0;
+
+// Явная проверка работает и в Release, где assert может быть отключён.
+void check(bool condition, const std::string &message)
+{
+    ++checks;
+    if (!condition)
     {
-        WorkerData x = a;
-        x.fullName = "Новый " + std::to_string(i);
-        x.personnelNumber = "N" + std::to_string(i);
-        d.addWorker(x);
+        throw std::runtime_error(message);
     }
-    assert(d.getWorkers().at(0).getId() == id);
-    bool duplicate = false;
+}
+
+void checkInvalidArgument(const std::function<void()> &action)
+{
+    // Проверяем, что действие отклоняет неверные данные.
+    bool thrown = false;
     try
     {
-        d.addWorker(a);
+        action();
     }
     catch (const std::invalid_argument &)
     {
-        duplicate = true;
+        thrown = true;
     }
-    assert(duplicate);
-    bool badRate = false;
+    check(thrown, "Ожидалось std::invalid_argument");
+}
+
+void checkOutOfRange(const std::function<void()> &action)
+{
+    // Проверяем поиск отсутствующего значения.
+    bool thrown = false;
     try
     {
-        WorkerData x = a;
-        x.personnelNumber = "bad";
-        x.rate = std::numeric_limits<double>::quiet_NaN();
-        d.addWorker(x);
-    }
-    catch (const std::invalid_argument &)
-    {
-        badRate = true;
-    }
-    assert(badRate);
-    bool missing = false;
-    try
-    {
-        d.findWorkerByNumber("none");
+        action();
     }
     catch (const std::out_of_range &)
     {
-        missing = true;
+        thrown = true;
     }
-    assert(missing);
-    std::cout << "Все проверки пройдены\n";
+    check(thrown, "Ожидалось std::out_of_range");
+}
+
+WorkerData makeData(const std::string &name, const std::string &number, const std::string &position)
+{
+    // Создаём минимальный набор данных для теста.
+    WorkerData data;
+    data.fullName = name;
+    data.personnelNumber = number;
+    data.position = position;
+    return data;
+}
+
+// Проверяет доступные через наследника методы абстрактного Person.
+void testPerson()
+{
+    WorkerData firstData = makeData("Иванов Иван", "P-1", "Программист");
+    WorkerData secondData = makeData("Петров Пётр", "P-2", "Программист");
+    WorkingWorker first(firstData);
+    WorkingWorker second(secondData);
+    const Person &person = first;
+
+    check(person.getFullName() == "Иванов Иван", "Person::getFullName");
+    check(person.getId() > 0, "Person::getId положителен");
+    check(person.getId() != second.getId(), "ID уникальны");
+    check(person.toString().find("Иванов Иван") != std::string::npos,
+          "Виртуальный Person::toString");
+
+    WorkerData invalid = makeData("", "P-3", "Программист");
+    checkInvalidArgument([&invalid] { WorkingWorker worker(invalid); });
+}
+
+// Проверяет должность, её строковое представление и неверные данные.
+void testPosition()
+{
+    Position programmer("Программист", "Разработка");
+    Position trainee("Стажёр");
+
+    check(programmer.getName() == "Программист", "Position::getName");
+    check(programmer.getDescription() == "Разработка", "Position::getDescription");
+    check(programmer.toString() == "Программист — Разработка", "Position::toString с описанием");
+    check(trainee.getDescription().empty(), "Описание по умолчанию");
+    check(trainee.toString() == "Стажёр", "Position::toString без описания");
+    checkInvalidArgument([] { Position position(""); });
+}
+
+// Проверяет конкретный Worker, все его данные и сравнение по табельному номеру.
+void testWorker()
+{
+    WorkerData data = makeData("Сидоров Сергей", "W-1", "Программист");
+    data.rate = 0.75;
+    data.hasChildren = true;
+    data.isPensioner = true;
+    data.hasDisability = true;
+    data.previousJobs = {"Альфа", "Бета"};
+    data.status = WorkerStatus::Working;
+    Worker worker(data);
+
+    check(worker.getPersonnelNumber() == "W-1", "Worker::getPersonnelNumber");
+    check(worker.getPosition() == "Программист", "Worker::getPosition");
+    check(std::abs(worker.getRate() - 0.75) < 1e-9, "Worker::getRate");
+    check(worker.hasChildren(), "Worker::hasChildren");
+    check(worker.isPensioner(), "Worker::isPensioner");
+    check(worker.hasDisability(), "Worker::hasDisability");
+    check(worker.getPreviousJobs().size() == 2 && worker.getPreviousJobs().at(1) == "Бета",
+          "Worker::getPreviousJobs");
+    check(worker.getWorkerStatus() == WorkerStatus::Working, "Worker::getWorkerStatus");
+    check(worker.getStatus() == "Работает", "Worker::getStatus");
+    check(worker.toString().find("Табельный номер: W-1") != std::string::npos, "Worker::toString");
+    check(worker.equals(worker), "Worker::equals для того же работника");
+
+    WorkerData sameNumber = makeData("Другой", "W-1", "Программист");
+    WorkerData otherNumber = makeData("Другой", "W-2", "Программист");
+    Worker same(sameNumber);
+    Worker other(otherNumber);
+    check(worker.equals(same), "Worker::equals для одинакового номера");
+    check(!worker.equals(other), "Worker::equals для разных номеров");
+
+    WorkerData movableData = makeData("Перемещаемый", "W-5", "Программист");
+    Worker movable(movableData);
+    const int movableId = movable.getId();
+    Worker moved(std::move(movable));
+    check(moved.getId() == movableId && moved.getPersonnelNumber() == "W-5",
+          "Перемещение Worker сохраняет ID и данные");
+
+    WorkerData emptyNumber = makeData("Тест", "", "Программист");
+    WorkerData emptyPosition = makeData("Тест", "W-3", "");
+    WorkerData invalidRate = makeData("Тест", "W-4", "Программист");
+    invalidRate.rate = std::numeric_limits<double>::quiet_NaN();
+    checkInvalidArgument([&emptyNumber] { Worker worker(emptyNumber); });
+    checkInvalidArgument([&emptyPosition] { Worker worker(emptyPosition); });
+    checkInvalidArgument([&invalidRate] { Worker worker(invalidRate); });
+}
+
+// Проверяет специализированный работающий статус и виртуальный вызов.
+void testWorkingWorker()
+{
+    WorkingWorker worker(makeData("Работающий", "WW-1", "Программист"));
+    const Worker &polymorphic = worker;
+    check(worker.getStatus() == "Работает", "WorkingWorker::getStatus");
+    check(polymorphic.getStatus() == "Работает", "Полиморфизм WorkingWorker");
+}
+
+// Проверяет специализированный статус очередного отпуска.
+void testVacationWorker()
+{
+    VacationWorker worker(makeData("Отпуск", "VW-1", "Программист"));
+    const Person &polymorphic = worker;
+    check(worker.getStatus() == "В очередном отпуске", "VacationWorker::getStatus");
+    check(polymorphic.toString().find("В очередном отпуске") != std::string::npos,
+          "Полиморфизм VacationWorker");
+}
+
+// Проверяет специализированный статус отпуска по уходу.
+void testChildCareWorker()
+{
+    ChildCareWorker worker(makeData("Уход", "CW-1", "Программист"));
+    const Worker &polymorphic = worker;
+    check(worker.getStatus() == "В отпуске по уходу за ребёнком", "ChildCareWorker::getStatus");
+    check(polymorphic.getStatus().find("уходу") != std::string::npos,
+          "Полиморфизм ChildCareWorker");
+}
+
+// Проверяет все публичные операции отдела кадров и пограничные случаи поиска.
+void testDepartment()
+{
+    Department department("Отдел кадров");
+    Position programmer("Программист", "Разработка");
+    Position accountant("Бухгалтер");
+    department.addPosition(programmer);
+    department.addPosition(accountant);
+
+    WorkerData first = makeData("Иванов Иван", "001", "Программист");
+    first.hasChildren = true;
+    first.previousJobs = {"Альфа"};
+    WorkerData second = makeData("Петров Пётр", "002", "Бухгалтер");
+    second.rate = 0.5;
+    second.isPensioner = true;
+    second.status = WorkerStatus::Vacation;
+    WorkerData third = makeData("Сидорова Анна", "003", "Программист");
+    third.hasDisability = true;
+    third.status = WorkerStatus::ChildCare;
+
+    department.addWorker(first);
+    department.addWorker(second);
+    department.addWorker(third);
+
+    check(department.getPositions().size() == 2, "Department::getPositions");
+    check(department.getPositions().at(0).getName() == "Программист", "Должность сохранена");
+    check(department.getWorkers().size() == 3, "Department::getWorkers");
+    check(department.getAllWorkers() == WorkerIndices({0, 1, 2}), "Department::getAllWorkers");
+    check(department.findWorkersByName("Иванов Иван") == WorkerIndices({0}),
+          "Department::findWorkersByName");
+    check(department.findWorkersByName("Нет").empty(), "Поиск по отсутствующему имени");
+    check(department.findWorkersByPosition("Программист") == WorkerIndices({0, 2}),
+          "Department::findWorkersByPosition");
+    check(department.findWorkersByPosition("Юрист").empty(), "Поиск по отсутствующей должности");
+    check(department.findWorkersByRate(0.5) == WorkerIndices({1}), "Department::findWorkersByRate");
+    check(department.findWorkersByRate(2.0).empty(), "Поиск по отсутствующей ставке");
+    check(department.findWorkersWithChildren() == WorkerIndices({0}),
+          "Department::findWorkersWithChildren");
+    check(department.findPensioners() == WorkerIndices({1}), "Department::findPensioners");
+    check(department.findWorkersWithDisability() == WorkerIndices({2}),
+          "Department::findWorkersWithDisability");
+    check(department.findWorkersByStatus(WorkerStatus::Working) == WorkerIndices({0}),
+          "Department::findWorkersByStatus Working");
+    check(department.findWorkersByStatus(WorkerStatus::Vacation) == WorkerIndices({1}),
+          "Department::findWorkersByStatus Vacation");
+    check(department.findWorkersByStatus(WorkerStatus::ChildCare) == WorkerIndices({2}),
+          "Department::findWorkersByStatus ChildCare");
+    check(department.findWorkerByNumber("002").getFullName() == "Петров Пётр",
+          "Department::findWorkerByNumber");
+    check(department.toString() == "Отдел кадров. Количество работников: 3",
+          "Department::toString");
+
+    checkInvalidArgument([&department, &programmer] { department.addPosition(programmer); });
+    checkInvalidArgument([&department, &first] { department.addWorker(first); });
+    WorkerData unknownPosition = makeData("Новый", "004", "Юрист");
+    checkInvalidArgument([&department, &unknownPosition]
+                         { department.addWorker(unknownPosition); });
+    checkOutOfRange([&department] { department.findWorkerByNumber("999"); });
+}
+} // namespace
+
+int main()
+{
+    testPerson();
+    testPosition();
+    testWorker();
+    testWorkingWorker();
+    testVacationWorker();
+    testChildCareWorker();
+    testDepartment();
+
+    std::cout << "Все проверки пройдены: " << checks << '\n';
+    return 0;
 }

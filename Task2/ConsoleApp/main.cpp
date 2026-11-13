@@ -2,6 +2,7 @@
 #include <iostream>
 #include <limits>
 
+// Значения пунктов меню, чтобы не использовать числа в switch.
 enum class MenuItem
 {
     Exit = 0,
@@ -19,6 +20,7 @@ enum class MenuItem
 };
 void printWorkers(const std::vector<Worker> &workers, const WorkerIndices &indices)
 {
+    // Выводим сотрудников по индексам, найденным отделом.
     if (indices.empty())
     {
         std::cout << "Работники не найдены\n";
@@ -50,6 +52,7 @@ int main()
         std::cout << "\nМЕНЮ\n1. Все\n2. ФИО\n3. Должность\n4. Ставка\n5. Дети\n6. Пенсионеры\n7. "
                      "Инвалидность\n8. Отпуск\n9. Уход\n10. Должности\n11. Предыдущие работы\n0. "
                      "Выход\nВаш выбор: ";
+        // Очищаем поток, если пользователь ввёл не число.
         if (!(std::cin >> choice))
         {
             std::cin.clear();
@@ -59,6 +62,7 @@ int main()
         }
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         const std::vector<Worker> &workers = department.getWorkers();
+        // Выполняем действие выбранного пункта меню.
         switch (static_cast<MenuItem>(choice))
         {
         case MenuItem::ShowAll:

@@ -7,6 +7,7 @@ Worker::Worker(const WorkerData &data, WorkerStatus status)
       rate_(data.rate), hasChildren_(data.hasChildren), isPensioner_(data.isPensioner),
       hasDisability_(data.hasDisability), previousJobs_(data.previousJobs), status_(status)
 {
+    // Проверяем обязательные поля и допустимую ставку.
     if (personnelNumber_.empty())
         throw std::invalid_argument("Табельный номер не может быть пустым");
     if (position_.empty())
@@ -24,6 +25,7 @@ const std::vector<std::string> &Worker::getPreviousJobs() const { return previou
 WorkerStatus Worker::getWorkerStatus() const { return status_; }
 std::string Worker::getStatus() const
 {
+    // Превращаем значение enum в понятный текст.
     switch (status_)
     {
     case WorkerStatus::Working:

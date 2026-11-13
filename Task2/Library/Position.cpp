@@ -4,6 +4,7 @@
 Position::Position(const std::string &name, const std::string &description)
     : name_(name), description_(description)
 {
+    // Отклоняем должность без названия.
     if (name_.empty())
     {
         throw std::invalid_argument("Название должности не может быть пустым");
