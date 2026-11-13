@@ -2,14 +2,18 @@
 #include "Person.h"
 #include <string>
 #include <vector>
-// Возможные статусы сотрудника.
+/**
+ * @brief Перечисляет возможные статусы сотрудника.
+ */
 enum class WorkerStatus
 {
     Working,
     Vacation,
     ChildCare
 };
-// Набор данных для создания сотрудника.
+/**
+ * @brief Содержит данные, необходимые для создания сотрудника.
+ */
 struct WorkerData
 {
     std::string fullName, personnelNumber, position;
@@ -18,7 +22,12 @@ struct WorkerData
     std::vector<std::string> previousJobs;
     WorkerStatus status = WorkerStatus::Working;
 };
-// Конкретный сотрудник с кадровыми данными и статусом.
+/**
+ * @brief Хранит кадровые данные конкретного сотрудника и его статус.
+ *
+ * Наследует уникальный ID и ФИО от Person. Метод getStatus() является
+ * виртуальным и может быть переопределён специализированными наследниками.
+ */
 class Worker : public Person
 {
     std::string personnelNumber_, position_;
@@ -28,42 +37,103 @@ class Worker : public Person
     WorkerStatus status_;
 
   protected:
-    // Создаёт сотрудника с указанным статусом для наследников.
+    /**
+     * @brief Создаёт сотрудника с указанным статусом для классов-наследников.
+     * @param data Кадровые данные сотрудника.
+     * @param status Статус сотрудника.
+     * @throws std::invalid_argument Если данные сотрудника некорректны.
+     */
     Worker(const WorkerData &data, WorkerStatus status);
 
   public:
-    // Создаёт сотрудника по заполненным кадровым данным.
+    /**
+     * @brief Создаёт сотрудника по заполненным кадровым данным.
+     * @param data Кадровые данные сотрудника.
+     * @throws std::invalid_argument Если ФИО, табельный номер или должность пусты,
+     * либо ставка не является положительным конечным числом.
+     */
     explicit Worker(const WorkerData &data);
-    // Копирование запрещено, чтобы не дублировать ID.
+    /**
+     * @brief Запрещает копирование сотрудника, чтобы не дублировать ID.
+     * @param other Копируемый сотрудник.
+     */
     Worker(const Worker &) = delete;
-    // Присваивание копированием запрещено.
+    /**
+     * @brief Запрещает присваивание копированием сотрудника.
+     * @param other Сотрудник для присваивания.
+     * @return Эта операция недоступна.
+     */
     Worker &operator=(const Worker &) = delete;
-    // Перемещение позволяет хранить сотрудников в vector.
+    /**
+     * @brief Перемещает сотрудника при изменении размера vector.
+     * @param other Перемещаемый сотрудник.
+     */
     Worker(Worker &&) noexcept = default;
-    // Присваивание перемещением не требуется.
+    /**
+     * @brief Запрещает присваивание перемещением сотрудника.
+     * @param other Сотрудник для перемещения.
+     * @return Эта операция недоступна.
+     */
     Worker &operator=(Worker &&) = delete;
-    // Удаляет сотрудника через базовый класс.
+    /**
+     * @brief Уничтожает сотрудника через базовый класс.
+     */
     ~Worker() override = default;
-    // Возвращает табельный номер.
+    /**
+     * @brief Возвращает табельный номер сотрудника.
+     * @return Константная ссылка на табельный номер.
+     */
     const std::string &getPersonnelNumber() const;
-    // Возвращает должность сотрудника.
+    /**
+     * @brief Возвращает должность сотрудника.
+     * @return Константная ссылка на должность.
+     */
     const std::string &getPosition() const;
-    // Возвращает ставку сотрудника.
+    /**
+     * @brief Возвращает ставку сотрудника.
+     * @return Значение ставки.
+     */
     double getRate() const;
-    // Сообщает, есть ли у сотрудника дети.
+    /**
+     * @brief Сообщает, есть ли у сотрудника дети.
+     * @return true, если у сотрудника есть дети, иначе false.
+     */
     bool hasChildren() const;
-    // Сообщает, является ли сотрудник пенсионером.
+    /**
+     * @brief Сообщает, является ли сотрудник пенсионером.
+     * @return true, если сотрудник пенсионер, иначе false.
+     */
     bool isPensioner() const;
-    // Сообщает, есть ли у сотрудника инвалидность.
+    /**
+     * @brief Сообщает, есть ли у сотрудника инвалидность.
+     * @return true, если у сотрудника есть инвалидность, иначе false.
+     */
     bool hasDisability() const;
-    // Возвращает предыдущие места работы.
+    /**
+     * @brief Возвращает предыдущие места работы сотрудника.
+     * @return Константная ссылка на список предыдущих мест работы.
+     */
     const std::vector<std::string> &getPreviousJobs() const;
-    // Возвращает статус в виде enum.
+    /**
+     * @brief Возвращает статус сотрудника в виде перечисления.
+     * @return Значение WorkerStatus.
+     */
     WorkerStatus getWorkerStatus() const;
-    // Возвращает статус текстом.
+    /**
+     * @brief Возвращает статус сотрудника текстом.
+     * @return Строковое представление статуса.
+     * @throws std::logic_error Если статус не соответствует значению WorkerStatus.
+     */
     virtual std::string getStatus() const;
-    // Возвращает все данные сотрудника текстом.
+    /**
+     * @brief Возвращает все данные сотрудника текстом.
+     * @return Многострочное описание сотрудника.
+     */
     std::string toString() const override;
-    // Сравнивает сотрудников по табельному номеру.
+    /**
+     * @brief Сравнивает сотрудников по табельному номеру.
+     * @param other Сотрудник для сравнения.
+     * @return true, если табельные номера совпадают, иначе false.
+     */
     bool equals(const Worker &other) const;
 };

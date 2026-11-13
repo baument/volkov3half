@@ -1,11 +1,22 @@
 #pragma once
 #include "Worker.h"
-// Сотрудник со статусом работы.
+/**
+ * @brief Представляет сотрудника со статусом работы.
+ *
+ * Наследует кадровые данные от Worker и переопределяет текст статуса.
+ */
 class WorkingWorker : public Worker
 {
   public:
-    // Создаёт работающего сотрудника.
+    /**
+     * @brief Создаёт работающего сотрудника.
+     * @param data Кадровые данные сотрудника.
+     * @throws std::invalid_argument Если данные сотрудника некорректны.
+     */
     explicit WorkingWorker(const WorkerData &data);
-    // Возвращает статус работающего сотрудника.
+    /**
+     * @brief Возвращает статус работающего сотрудника.
+     * @return Строка «Работает».
+     */
     std::string getStatus() const override;
 };

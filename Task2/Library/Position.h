@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
 
-// Должность с названием и необязательным описанием.
+/**
+ * @brief Хранит название должности и её необязательное описание.
+ */
 class Position
 {
   private:
@@ -9,13 +11,27 @@ class Position
     std::string description_;
 
   public:
-    // Создаёт должность с названием и необязательным описанием.
+    /**
+     * @brief Создаёт должность с названием и необязательным описанием.
+     * @param name Название должности.
+     * @param description Описание должности.
+     * @throws std::invalid_argument Если название должности пустое.
+     */
     Position(const std::string &name, const std::string &description = "");
 
-    // Возвращает название должности.
+    /**
+     * @brief Возвращает название должности.
+     * @return Константная ссылка на название.
+     */
     const std::string &getName() const;
-    // Возвращает описание должности.
+    /**
+     * @brief Возвращает описание должности.
+     * @return Константная ссылка на описание.
+     */
     const std::string &getDescription() const;
-    // Возвращает должность одной строкой.
+    /**
+     * @brief Возвращает должность в виде одной строки.
+     * @return Название или название с описанием.
+     */
     std::string toString() const;
 };
